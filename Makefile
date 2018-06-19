@@ -8,7 +8,7 @@ INCLUDEDIR = ./
 INCDIR  = $(patsubst %,-I%,$(INCLUDEDIR))
 
 OPT = -O0
-DEBUG = -g
+DEBUG = -g -DDEBUG
 WARN= -Wall
 
 CXXFLAGS= $(OPT) $(DEBUG) $(WARN) $(INCDIR)

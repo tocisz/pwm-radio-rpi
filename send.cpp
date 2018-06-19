@@ -13,7 +13,7 @@ class sender {
 public:
   sender() : pwm(1000.0, 256, 100.0/12, rpiPWM1::MSMODE) {}
 
-  void begin();
+  void reset();
   void send(char c);
   void idle();
 
@@ -23,7 +23,6 @@ private:
   unsigned char last_nibble;
 
   void send1(unsigned char c);
-  void send2(unsigned char c);
 };
 
 int main(int argc, char *args[]) {
@@ -33,7 +32,7 @@ int main(int argc, char *args[]) {
 
   while (std::getline(std::cin, line))
   {
-     s.begin();
+     s.reset();
      for (std::string::iterator p = line.begin(); line.end() != p; ++p) {
        char c = toupper(*p);
        if (c >= 32 && c < 96) {
@@ -49,27 +48,33 @@ int main(int argc, char *args[]) {
   return 0;
 }
 
-void sender::begin() {
-  send1(0);
-  send1(7);
+void sender::reset() {
+  // reset internal state
+  last_nibble = 8;
 }
 
 void sender::send(char c) {
-  unsigned char b1 = c & 0b111;
-  unsigned char b2 = (c >> 3) & 0b111;
-  send1(b2);
+  unsigned char b2 = c & 0b111;
+  unsigned char b1 = (c >> 3) & 0b111;
   send1(b1);
+  send1(b2);
 }
 
 void sender::send1(unsigned char c) {
-  send2(0);
-  usleep(3*frameTime);
-  send2(c+1);
-  usleep(3*frameTime);
-}
+  #if DEBUG
+  std::cout << '[' << (char)('0'+c) << ']';
+  #endif
 
-void sender::send2(unsigned char c) {
+  if (c >= last_nibble)
+    ++c; // change it to be different than last one
+  last_nibble = c;
+
+  #if DEBUG
+  std::cout << '{' << (char)('0'+c) << '}';
+  #endif
+
   pwm.setDutyCycle((2+c)*100.0/12);
+  usleep(3*frameTime);
 }
 
 void sender::idle() {
