@@ -23,6 +23,10 @@ private:
   unsigned char last_nibble;
 
   void send1(unsigned char c);
+
+  inline void set_channel(unsigned char i) {
+    pwm.setDutyCycle(i*100.0/12);
+  }
 };
 
 int main(int argc, char *args[]) {
@@ -73,10 +77,10 @@ void sender::send1(unsigned char c) {
   std::cout << '{' << (char)('0'+c) << '}';
   #endif
 
-  pwm.setDutyCycle((2+c)*100.0/12);
+  set_channel(c+2);
   usleep(3*frameTime);
 }
 
 void sender::idle() {
-  pwm.setDutyCycle(100.0/12);
+  set_channel(1);
 }
